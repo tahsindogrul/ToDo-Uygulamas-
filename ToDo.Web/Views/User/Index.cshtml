@@ -1,0 +1,194 @@
+﻿<div class="card">
+
+    <div class="card-header bg-success text-white text-center d-flex">
+        <div class="col-11">Kullanıcı Listesi</div>
+        <div class="col-1 text-end">
+            <a id="btnEkle" class="m-0 btn btn-warning btn-sm">Ekle</a>
+        </div>
+
+    </div>
+    <div class="card-body">
+        <table id="tblUsers" class="table table-bordered table-striped table-hover">
+        </table>
+    </div>
+</div>
+
+
+<div class="modal fade" id="modalEkle" tabindex="-1" data-bs-backdrop="static"
+     data-bs-keyboard="false"
+     role="dialog"
+     aria-labelledby="modalTitleId"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-sm"
+         role="document">
+
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitleId">
+                    Yeni Kullanıcı Ekle
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+
+                <div class="mb-3 row">
+                    <input id="txtUserName" class="form-control" placeholder="Lütfen kullanıcı adı giriniz" />
+                </div>
+
+                <div class="mb-3 row">
+                    <input id="txtPassword" class="form-control" placeholder="Lütfen şifre giriniz" />
+                </div>
+
+                <div class="mb-3 row">
+                    <input type="checkbox" id="chkIsAdmin" class="form-check-input" /> Is Admin ?
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"> Kapat </button>
+                <a id="btnSave" class="btn btn-primary"> Kaydet </a>
+            </div>
+
+
+        </div>
+    </div>
+
+
+    @section Scripts {
+        <script>
+            $(document).ready(function () {
+
+                $("#btnEkle").click(function () {
+                    $("#modalEkle").modal("show");
+                    $("#modalEkle .form-control").val('');
+                    $("#chkIsAdmin").prop("checked", false);
+
+                    $("#btnKaydet").click(function () {
+                        $.ajax({
+                            url: 'User/Add',
+                            type: 'POST',
+                            data: {
+                                appUser: {
+                                    name: $("#txtUserName").val(),
+                                    password: $("#txtPassword").val(),
+                                    isAdmin: $("#chkIsAdmin").prop("checked")
+                                }
+
+                            },
+                            success: function (res) {
+                                res.totalTodo = 0;
+                                DataTable.row.add(res).draw();
+                                $("#modalEkle").modal("hide");
+                            }
+
+                        });
+                    });
+                })
+
+                
+
+
+
+
+
+                var DataTable = $("#tblUsers").DataTable({
+                    ajax: '/User/GetAll',
+                    columns: [
+                        { data: 'id', title: 'ID' },
+                        { data: 'name', title: 'Kullanıcı Adı' },
+
+                        {
+                            data: 'isAdmin', title: 'Tip', render: function (data) {
+                                return data ? "Admin" : "User";
+                            }
+                        },
+
+                        { data: 'totalTodo', title: 'Toplam Görev' },
+
+                        {
+                            data: 'id', title: 'İşlemler', render: function (data) {
+                                return `<a onclick="deleteUser(${data},this)" class="btn btn-danger btn-sm"> Sil</a>
+                                            <a onclick="updateUser(${data})"  class="btn btn-warning btn-sm"  > Düzenle</a>`;
+                            }
+                        }
+                       
+                    ]
+                });
+
+
+            });
+
+            
+            
+            function updateUser(id) {       
+                    $("#modalEkle").modal("show");
+                $.ajax({
+                    url: "/User/GetById/"+id,
+                    type:"Get",
+                    success: function (res) {
+                        $("#txtUserName").val(res.name);
+                        $("#txtPassword").val(res.password);
+                        $("#chkIsAdmin").prop("checked", res.isAdmin);
+                    }       
+                })
+
+
+
+                $("#btnSave").off().click(function(){
+
+                    $.ajax({
+                        url: "/User/Update/",
+                        type: "POST",
+                        data: {
+                            appUser:{
+                                id:id,
+                                name: $("#txtUserName").val(),
+                                password: $("#txtPassword").val(),
+                                isAdmin: $("#chkIsAdmin").prop("checked") }
+                        },
+                        success: function () {
+                            $("#modalEkle").modal("hide");
+                            DataTable.ajax.reload();
+                        }
+                       
+                    })
+                })
+
+                
+            }
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+            function deleteUser(userId, button) {
+
+                if (confirm("Emin misiniz ? Kullanıcının tüm görevleri silinecektir")) {
+
+                    $.ajax({
+                        url: '/User/Delete',
+                        type: 'POST',
+                        data: {
+                            appUser: { id:userId }
+                        },
+                        success: function () {
+                            let satir = $(button).parent().parent();
+                            DataTable.row(satir).remove().draw();
+                        }
+                    })
+                }
+
+            }
+
+
+        </script>
+    }

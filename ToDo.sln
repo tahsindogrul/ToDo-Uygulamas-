@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34622.214
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToDo.Web", "ToDo.Web\ToDo.Web.csproj", "{05AD6FB6-E733-4FC6-A849-24A480F27696}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToDo.Models", "ToDo.Models\ToDo.Models.csproj", "{706FD17A-ECAA-4AFB-A634-C94F8A1DE109}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToDo.Data", "ToDo.Data\ToDo.Data.csproj", "{FD98DB09-0C85-4BB5-BC63-A61FE1FA56A6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{05AD6FB6-E733-4FC6-A849-24A480F27696}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05AD6FB6-E733-4FC6-A849-24A480F27696}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05AD6FB6-E733-4FC6-A849-24A480F27696}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05AD6FB6-E733-4FC6-A849-24A480F27696}.Release|Any CPU.Build.0 = Release|Any CPU
+		{706FD17A-ECAA-4AFB-A634-C94F8A1DE109}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{706FD17A-ECAA-4AFB-A634-C94F8A1DE109}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{706FD17A-ECAA-4AFB-A634-C94F8A1DE109}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{706FD17A-ECAA-4AFB-A634-C94F8A1DE109}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD98DB09-0C85-4BB5-BC63-A61FE1FA56A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD98DB09-0C85-4BB5-BC63-A61FE1FA56A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD98DB09-0C85-4BB5-BC63-A61FE1FA56A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD98DB09-0C85-4BB5-BC63-A61FE1FA56A6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D6ED2025-2398-4E46-9A4A-C27C2EFEAAEA}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,247 @@
+﻿
+
+<div class="card">
+    <div class="card-header bg-primary text-white text-center">Todo Listesi</div>
+    <div class="card-body">
+        <a href="#" class="btn btn-primary" id="btnAdd">Ekle</a>
+        <table class="table table-bordered table-striped table-hover">
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="modalEkle" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" role="dialog" aria-labelledby="modalTitleId" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitleId">
+                    Yeni Görev Ekle
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+
+                <div class="mb-3 row">
+                    <input id="txtTitle" type="text" class="form-control" placeholder="Lütfen etiket adı giriniz" />
+                </div>
+                <div class="mb-3 row">
+                    <textarea rows="3" id="txtDescription" class="form-control" placeholder="Lütfen etiket adı giriniz"></textarea>
+                </div>
+
+                <div class="mb-3 row">
+                    <select id="ddlStatus" class="form-select"></select>
+                </div>
+                <div class="mb-3 row">
+                    <select id="ddlTag" multiple class="form-select"></select>
+                </div>
+
+
+
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"> Kapat </button>
+                <a id="btnSave" class="btn btn-primary"> Kaydet </a>
+            </div>
+
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var DataTable;
+        $(document).ready(function () {
+
+            $("#btnAdd").click(function () {
+                $("#modalEkle").modal("show");
+                fillDdlStatus();
+                fillDdlTag();
+                $("#btnSave").off().click(function () {
+
+                    $.ajax({
+                        url: '/Todo/Add',
+                        type: 'POST',
+                        data: {
+                            todo: {
+                                name: $("#txtTitle").val(),
+                                description: $("#txtDescription").val(),
+                                statusId: $("#ddlStatus").val()
+                            },
+                            tags: $("#ddlTag").val()
+
+
+                        },
+                        success: function (res) {
+                            $("#modalEkle").modal("hide");
+                            //  DataTable.row.add(res).draw();
+                            DataTable.ajax.reload();
+                        }
+                    });
+
+                });
+
+
+            });
+            DataTable = $("table").DataTable({
+                ajax: '/Todo/GetAll',
+                columns: [
+                    { data: 'id', title: 'ID' },
+                    { data: 'name', title: 'Başlık' },
+                    { data: 'description', title: 'Açıklama' },
+                    { data: 'status.name', title: 'Durum' },
+                    {
+                        data: 'tags', title: 'Etiketler', render: function (data, type, row) {
+
+                            let etiketler = "";
+                            for (let item of data) {
+                                etiketler += `<div><span class="bg-warning text-dark rounded-pill">${item.name}</span>
+                                                                    <a href="#" onclick="removeTag(${row.id},this,${item.id})" class="btn btn-sm btn-danger">x</a></div>`;
+                            }
+                            return etiketler;
+
+                        }
+                    },
+                    {
+                        data: 'id', title: 'İşlemler', render: function (data) {
+                            return `<a href="#" class="btn btn-success btn-sm" onclick="updateTodo(${data})">Düzenle</a> <a href="#" class="btn btn-danger btn-sm" onclick="deleteTodo(${data},this)">Sil</a>`
+                        }
+                    }
+                ]
+            });
+
+
+        });
+
+        function updateTodo(todoId) {
+
+            $("#modalEkle").modal("show");
+
+            $.ajax({
+                type: "get",
+                url: "/Todo/UpdateTodo/",
+                data: {
+                    id: todoId,
+                },
+                success: function (res) {
+
+                    $("#txtTitle").val(res.name);
+                    $("#txtDescription").val(res.description);
+
+                    fillDdlStatus(res.status.id);
+                    fillDdlTag(res.tags);
+                }
+            })
+            $("#btnSave").off().click(function () {
+                let todo = {
+                    id: todoId,
+                    name: $("#txtTitle").val(),
+                    description: $("#txtDescription").val(),
+                    statusId: $("#ddlStatus").val()
+                }
+                $.ajax({
+                    type: "post",
+                    url: "/Todo/UpdateTodo/",
+                    data: {
+                        todo: todo,
+                        tagsId: $("#ddlTag").val(),
+
+
+                    },
+                    success: function () {
+                        $("#modalEkle").modal("hide");
+                        DataTable.ajax.reload();
+                    }
+                })
+            })
+
+
+
+        }
+
+        function fillDdlStatus(statusId) {
+            $.ajax({
+                url: '/Status/GetAll',
+                type: 'GET',
+                success: function (res) {
+                    $("#ddlStatus").empty();
+                    $("#ddlStatus").append(new Option("Lütfen bir durum seçiniz", 0));
+                    for (let item of res) {
+                        $("#ddlStatus").append(new Option(item.name, item.id, false, item.id == statusId))
+                    }
+
+                    $("#ddlStatus").select2({
+                        dropdownParent: $("#modalEkle"),
+                        width: "100%"
+                    })
+
+                }
+            });
+        }
+
+        function fillDdlTag(tagsList) {
+            $.ajax({
+                url: '/Tag/GetAll',
+                type: 'GET',
+                success: function (res) {
+                    $("#ddlTag").empty();
+
+                    for (let item of res.data) {
+                        $("#ddlTag").append(new Option(item.name, item.id, false, tagsList.find(t => t.id == item.id) != null));
+
+                    }
+
+                    $("#ddlTag").select2({
+                        dropdownParent: $("#modalEkle"),
+                        width: "100%",
+                        placeholder: "Lütfen Etiket Seçiniz!"
+                    })
+
+                }
+            });
+
+
+        }
+
+
+
+
+
+        function removeTag(todoId, button, tagId) {
+
+            $.ajax({
+                url: '/Todo/RemoveTag',
+                type: 'POST',
+                data: {
+                    todoId: todoId,
+                    tagId: tagId
+                },
+                success: function () {
+                    $(button).parent().remove();
+                }
+            });
+
+        }
+
+        function deleteTodo(todoId, button) {
+
+            $.ajax({
+                url: '/Todo/Delete',
+                type: 'POST',
+                data: {
+                    todo: {
+                        id: todoId
+                    }
+                },
+                success: function () {
+                    let satir = $(button).parent().parent();
+                    DataTable.row(satir).remove().draw();
+                    //    DataTable.ajax.reload();
+                }
+            });
+
+        }
+
+
+    </script>
+}

@@ -1,0 +1,177 @@
+﻿<div class="card">
+    <div class="card-header bg-warning text-center fs-4">Etiket Listesi</div>
+    <div class="card-body">
+        <a href="#" id="btnEkle" class="btn btn-success" >Ekle</a>
+
+        <table class="table table-bordered table-hover table-striped">
+        </table>
+
+    </div>
+    <div class="card-footer"> </div>
+
+
+
+
+</div>
+
+
+
+<div class="modal fade" id="modalEkle" tabindex="-1" data-bs-backdrop="static"
+     data-bs-keyboard="false"
+     role="dialog"
+     aria-labelledby="modalTitleId"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-sm"
+         role="document">
+      
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitleId">
+                        Yeni Etiket Ekle
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+
+
+                    <input id="txtTagName"  class="form-control" placeholder="Lütfen etiket adı giriniz" />
+
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"> Kapat </button>
+                    <a id="btnSave" class="btn btn-primary"> Kaydet </a>
+                </div>
+
+       
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        //bonus
+            $("#modalEkle").on('shown.bs.modal', function () {
+                $(this).find('#txtTagName').focus().val('');
+            });
+
+        $("#btnEkle").click(function () {
+            $("#modalEkle").modal("show");
+            $("#btnSave").off().click(function () {
+
+                $.ajax({
+                    url: '/Tag/Add',
+                    type: 'POST',
+                    data: {
+                            name: $("#txtTagName").val()
+                    },
+                    success: function (res) {
+                            $("#modalEkle").modal("hide");
+                        
+                       // DataTable.ajax.reload();
+                          DataTable.row.add({ id: res, name: $("#txtTagName").val() }).draw();
+
+                    }
+                });
+
+            });
+
+
+           
+        })
+
+
+
+        var DataTable = $("table").DataTable({
+            ajax: '/Tag/GetAll',
+            columns: [
+                { data: 'id', title: 'ID' },
+                { data: 'name', title: 'Etiket Adı' },
+                {
+                    data: 'id', title: 'İşlemler', render: function (data, type, row) {
+
+                            return `<a id="btnSil-${data}" onclick="deleteTag(${data},this)" hidden class="btn satir-${data} btn-danger">Sil</a>
+                                                        <a onclick="updateTag(${data},this)" class="btn btn-success ">Düzenle</a>
+                                                        <a id="btnKaydet-${data}" class="btn btn-warning satir-${data}" hidden>Kaydet</a>
+                                            <a id="btnIptal-${data}" class="btn btn-danger satir-${data}" hidden>İptal</a>
+                        `;
+
+                    }
+                }
+            ],
+            language: {
+                    url: '//cdn.datatables.net/plug-ins/2.0.7/i18n/tr.json',
+                    deleteTag:"Kayıt bulunamadı"
+            }
+               
+        });
+
+
+        function deleteTag(id, element) {
+
+            if (confirm("Emin misiniz?")) {
+                $.ajax({
+                    url: '/Tag/DeleteAjax',
+                    type: 'POST',
+                    data: { id: id },
+                    success: function () {
+                        //  DataTable.ajax.reload();
+                        let satir = $(element).parent().parent();
+                        DataTable.row(satir).remove().draw();
+                    }
+                });
+            }
+
+
+        }
+
+        function updateTag(id, button) {
+
+            let td = $($(button).parent().parent().children()[1]);
+
+            $(".satir-" + id).removeAttr("hidden").show();
+             
+            $(button).hide();
+
+
+           let eskiDeger = td.text();
+
+            td.attr("contentEditable", "true").focus();
+
+
+            $("#btnIptal-" + id).off().click(function () {
+                td.text(eskiDeger);
+                td.removeAttr("contentEditable");
+                $(button).show();
+                $(".satir-" + id).hide();
+             
+
+            });
+
+
+                $("#btnKaydet-" + id).off().click(function () {
+                $.ajax({
+                    url:'/Tag/Update',
+                    type:'POST',
+                    data: {id:id,name:td.text()},
+                    success: function () {
+                        td.removeAttr("contentEditable");
+                        $(button).show();
+                        $(".satir-" + id).hide();
+                        
+
+                    }
+                });
+            });
+
+
+
+
+
+
+
+        
+        }
+
+    </script>
+}
