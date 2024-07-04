@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ToDo.Business.Abstract;
 using ToDo.Data;
+using ToDo.Data.Repository.Shared.Absract;
 using ToDo.Models;
 using ToDo.Models.ViewModels;
 
@@ -9,12 +11,11 @@ namespace ToDo.Web.Controllers
     [Authorize(Roles ="Admin")]
     public class TagController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ITagService _tagService;
 
-        public TagController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+     
+
+
 
         [Authorize(Roles = "Admin")]
         public IActionResult Index()
@@ -26,18 +27,13 @@ namespace ToDo.Web.Controllers
             //return View(vm);
 
             //2.yol
-            return View(new TagListVM { Tags = _context.Tags.ToList() });
+            return View(new TagListVM { Tags = _tagService.GetAll().ToList()});
         }
 
         [Authorize(Roles = "Admin")]
         public IActionResult Delete(int id)
         {
-            Tag tag = _context.Tags.Find(id);
-            if ((tag != null))
-            {
-                _context.Tags.Remove(tag);
-                _context.SaveChanges();
-            }
+           _tagService.Delete(id);
 
             return RedirectToAction("Index");
 
@@ -47,9 +43,8 @@ namespace ToDo.Web.Controllers
         [HttpPost]
         public IActionResult DeleteAjax(Tag tag)
         {
-            _context.Tags.Remove(tag);
-            _context.SaveChanges();
-            return Ok("İşlem başarılı");
+          
+            return Ok(_tagService.Delete(tag.Id));
 
         }
 
@@ -57,25 +52,23 @@ namespace ToDo.Web.Controllers
         [HttpPost]
         public IActionResult Add(Tag tag)
         {
-            _context.Tags.Add(tag);
-            _context.SaveChanges();
-            return Ok(tag.Id);
+           
+            return Ok(_tagService.Add(tag).Id) ;
         }
 
         [Authorize(Roles = "Admin")]
         public IActionResult Update(int id )
         { 
 
-            return View(_context.Tags.Find(id));
+            return View(_tagService.GetById(id));
 
         }
 
         [Authorize(Roles = "Admin")]
         [HttpPost]
         public IActionResult Update(Tag tag) {
-            _context.Tags.Update(tag);
-            _context.SaveChanges();
-            return Ok(tag.Id);
+           
+            return Ok(_tagService.Update(tag));
         
         }
 
@@ -83,7 +76,7 @@ namespace ToDo.Web.Controllers
         public IActionResult GetAll()
         {
             //data table için new diyerek isimsiz obje oluşturuyoruz
-            return Json(new {data= _context.Tags.ToList()});
+            return Json(new {data= _tagService.GetAll()});
         }
     }
 

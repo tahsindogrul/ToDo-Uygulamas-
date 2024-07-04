@@ -1,19 +1,21 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ToDo.Business.Abstract;
 using ToDo.Data;
+using ToDo.Data.Repository.Shared.Absract;
 using ToDo.Models;
 
 namespace ToDo.Web.Controllers
 {
     public class StatusController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IStatusService _statusService;
 
-        public StatusController(ApplicationDbContext context)
+        public StatusController(IStatusService statusService)
         {
-            _context = context;
-
+            _statusService = statusService;
         }
+
         [Authorize(Roles = "Admin")]
         public IActionResult Index()
         {
@@ -23,16 +25,15 @@ namespace ToDo.Web.Controllers
         [Authorize(Roles = "Admin,User")]
         public IActionResult GetAll()
         {
-            return Json(_context.Statuses.ToList());
+            return Json(_statusService.GetAll());
         }
 
         [Authorize(Roles = "Admin")]
         [HttpPost]
         public IActionResult Add(Status status)
         {
-            _context.Statuses.Add(status);
-            _context.SaveChanges();
-            return Ok(status.Id);
+
+            return Ok(_statusService.Add(status)); ;
         }
 
 
@@ -40,9 +41,8 @@ namespace ToDo.Web.Controllers
         [HttpPost]
         public IActionResult Update(Status status)
         {
-            _context.Statuses.Update(status);
-            _context.SaveChanges();
-            return Ok();                  
+           
+            return Ok(_statusService.Update(status));                  
         }
 
 
@@ -51,9 +51,8 @@ namespace ToDo.Web.Controllers
         [HttpPost]
         public IActionResult Delete(Status status)
         {
-            _context.Statuses.Remove(status);
-            _context.SaveChanges();
-            return Ok();
+           
+            return Ok(_statusService.Delete(status.Id) );
 
         }
 

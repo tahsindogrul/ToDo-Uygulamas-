@@ -4,20 +4,24 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Security.Principal;
+using ToDo.Business.Abstract;
 using ToDo.Data;
+using ToDo.Data.Repository.Absract;
 using ToDo.Models;
+using ToDo.Models.DTOs;
 using ToDo.Models.ViewModels;
 
 namespace ToDo.Web.Controllers
 {
     public class UserController : Controller
     {
-        private readonly ApplicationDbContext _context;
-        public UserController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        private readonly IUserService _userService;
 
+        public UserController(IUserService userService)
+        {
+            _userService = userService;
+        }
 
         [Authorize(Roles ="Admin")]
         public IActionResult Index()
@@ -28,44 +32,26 @@ namespace ToDo.Web.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult GetAll()
         {
-           
-
-          var result= _context.Users.Select(u => new
-            {
-                u.Id,
-                u.Name,
-                u.IsAdmin,
-                TotalTodo=u.Todos.Count    
-
-            }).ToList();
-            return Json(new {data=result});
+          
+            return Json(new {data= _userService.GetAllWithTodoCount()});
         }
 
 
         [HttpPost]
-        public async Task<IActionResult> Login(LoginWm user)
+        public async Task<IActionResult> Login(AppUser user)
         {
-            AppUser appUser=_context.Users.FirstOrDefault(u=>u.Password==user.Password && u.Name==user.Name);
-            if (appUser==null)
+            ClaimsPrincipal? principal= _userService.CheckLogin(user);
+            if (principal==null)
             {
-                TempData["error"] = "Kullanıcı Adı veya Şifreniz Yanlıştır";
-                return View();
+                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+                await HttpContext.SignInAsync(principal);
+                return RedirectToAction("Index", "Home");
             }
             else
             {
-                List<Claim> claims = new List<Claim>();
-                claims.Add(new Claim(ClaimTypes.NameIdentifier, appUser.Id.ToString()));
-                claims.Add(new Claim(ClaimTypes.GivenName, appUser.Name));
-                claims.Add(new Claim(ClaimTypes.Role, appUser.IsAdmin ? "Admin" : "User"));
 
-                ClaimsIdentity identity = new ClaimsIdentity
-                  (claims,CookieAuthenticationDefaults.AuthenticationScheme);
-
-               await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-
-                await HttpContext.SignInAsync(new ClaimsPrincipal(identity), new AuthenticationProperties { IsPersistent=user.IsPersistent});
-
-                return RedirectToAction("Index", "Home");
+              
             }
 
         }
@@ -112,9 +98,8 @@ namespace ToDo.Web.Controllers
         [HttpPost]
         public IActionResult Delete(AppUser appUser)
         {
-            _context.Users.Remove(appUser);
-            _context.SaveChanges();
-            return Ok();
+            
+            return Ok(_userService.Delete(appUser.Id));
         }
 
 
@@ -123,15 +108,14 @@ namespace ToDo.Web.Controllers
         [HttpPost]
         public IActionResult Add(AppUser appUser)
         {
-            _context.Users.Add(appUser);
-            _context.SaveChanges();
-            return Ok(appUser);
+         
+            return Ok(_userService.Add(appUser));
         }
 
         [Authorize(Roles = "Admin")]   
         public IActionResult GetById(int id)
         {
-            return Json(_context.Users.FirstOrDefault(u=>u.Id == id));
+            return Json(_userService.GetById(id));
             
         }
 
@@ -140,9 +124,8 @@ namespace ToDo.Web.Controllers
         [HttpPost]
         public IActionResult Update(AppUser appUser)
         {
-            _context.Users.Update(appUser);
-            _context.SaveChanges();
-            return Ok();
+          
+            return Ok(_userService.Update(appUser));
 
         }
 
