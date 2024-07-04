@@ -10,7 +10,7 @@ using ToDo.Models;
 
 namespace ToDo.Data.Repository.Shared.Concrete
 {
-    public class Repository<T> : IRepository<T> where T : BaseModel
+    public class Repository<T> : IRepository<T> where T : BaseModel, new()
     {
         private readonly ApplicationDbContext _context;
         private readonly DbSet<T> _dbSet;
@@ -43,7 +43,7 @@ namespace ToDo.Data.Repository.Shared.Concrete
             return;
         }
 
-        public IQueryable<T> GetAll()
+        public virtual IQueryable<T> GetAll()
         {
             return _dbSet;
         }

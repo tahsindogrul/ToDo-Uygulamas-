@@ -8,7 +8,7 @@ using ToDo.Models;
 
 namespace ToDo.Data.Repository.Shared.Absract
 {
-    public interface IRepository<T> where T : BaseModel
+    public interface IRepository<T> where T : BaseModel,new()
     {
         T GetById(int id);
         T Add(T entity);
