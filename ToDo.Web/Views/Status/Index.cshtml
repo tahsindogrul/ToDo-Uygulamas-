@@ -81,10 +81,10 @@
                     $("#txtStatusName").val("");
                     $("tbody").append(`
                                                     <tr>
-                                                        <td>${res}</td>
+                                                        <td>${res.id}</td>
                                                                  <td>${statusName}</td>
                                                          <td><a onclick="deleteStatus(${res},this)" href="#" class="btn btn-danger">Sil</a>
-                                                                          <a onclick="updateStatus(${res},this,'${statusName}')" href="#" class="btn btn-warning">Düzenle</a>
+                                                                          <a onclick="updateStatus(${res.id},this,'${statusName}')" href="#" class="btn btn-warning">Düzenle</a>
                                                          </td>
                                                     </tr>
 
